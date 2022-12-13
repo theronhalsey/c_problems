@@ -1,129 +1,187 @@
 // link libraries
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <stdbool.h>
+#include <time.h>
 
 // macros
-#define BOARD_SIZE 8
-#define MARK_VISITED(BF, N) BF |= ((uint64_t) 0b1 << N)
-#define UNMARK_VISITED(BF, N) BF &= ((uint64_t) 0b0 << N)
-#define WAS_NOT_VISITED(BF, N) !((BF >> N) & 0b1)
+#define BOARD_SIZE 7
 
 // function prototypes
-bool canMove(uint8_t direction, uint8_t row, uint8_t col);
-void move(uint8_t moveNum, uint8_t movesToGo, uint8_t direction, uint8_t row, uint8_t col);
-void changeRowCol(uint8_t direction, uint8_t *row, uint8_t *col);
+void move();
+void changeRowCol();
+bool canMove();
+uint_fast8_t undoMove();
 
 // global variables
-uint8_t board[BOARD_SIZE][BOARD_SIZE] = { 0 };
-uint64_t visited = 0;
+uint_fast8_t board[BOARD_SIZE][BOARD_SIZE] = {0};
+uint_fast8_t moveNum = 1, row = 0, col = 0, direction = 0;
+uint_fast64_t totalMoves = 1;
 
 int main(void)
 {
-    uint8_t moveNum = 0, movesToGo = BOARD_SIZE * BOARD_SIZE;
-    move(moveNum, movesToGo, 0, 0, 0);
+    clock_t start, end;
+    double solveTime;
 
-
+    for (uint_fast8_t i = 0; i < BOARD_SIZE; i++)
+    {
+        for(uint_fast8_t j = 0; j < BOARD_SIZE; j++)
+        {
+            memset(board, 0, sizeof(board));
+            moveNum = 1, row = i, col = j, direction = 0;
+            totalMoves = 1;
+            start = clock();
+            while(moveNum != 0 && moveNum != BOARD_SIZE * BOARD_SIZE)
+                move(direction);
+            *(*(board + row) + col) = moveNum;
+            end = clock();
+            solveTime = ((double)(end-start)) / CLOCKS_PER_SEC;
+            for (uint_fast8_t k = 0; k < BOARD_SIZE; k++)
+            {
+                for (uint_fast8_t l = 0; l < BOARD_SIZE; l++)
+                    printf("%02d ", *(*(board + k) + l));
+                puts("");
+            }
+            printf("total moves: %lld\ntime: %llf\n\n", totalMoves, solveTime);
+        }
+        puts("");
+    }
 
     return 0;
 }
 
-bool canMove(uint8_t direction, uint8_t row, uint8_t col)
+void move()
 {
-    switch(direction)
+    totalMoves++;
+    while((direction) < 8 && !canMove(direction))
+        direction++;
+    if((direction) < 8)
     {
-    case 0: // Up-Left
-        return row - 2 >= 0 && col - 1 >= 0 && WAS_NOT_VISITED(visited, ((row - 2) * BOARD_SIZE) + col - 1);
-        break;
-    case 1: // Up-Right
-        return row - 2 >= 0 && col + 1 < BOARD_SIZE && WAS_NOT_VISITED(visited, ((row - 2) * BOARD_SIZE) + col + 1);
-        break;
-    case 2: // Right-Up
-        return col + 2 < BOARD_SIZE && row - 1 >= 0 && WAS_NOT_VISITED(visited, ((col + 2) * BOARD_SIZE) + row - 1);
-        break;
-    case 3: // Right-Down
-        return col + 2 < BOARD_SIZE && row + 1 < BOARD_SIZE && WAS_NOT_VISITED(visited, ((col + 2) * BOARD_SIZE) + row + 1);
-        break;
-    case 4: // Down-Right
-        return row + 2 < BOARD_SIZE && col + 1 < BOARD_SIZE && WAS_NOT_VISITED(visited, ((row + 2) * BOARD_SIZE) + col + 1);
-        break;
-    case 5: // Down-Left
-        return row + 2 < BOARD_SIZE && col - 1 >= 0 && WAS_NOT_VISITED(visited, ((row + 2) * BOARD_SIZE) + col - 1);
-        break;
-    case 6: // Left-Down
-        return col - 2 >= 0 && row + 1 < BOARD_SIZE && WAS_NOT_VISITED(visited, ((col - 2) * BOARD_SIZE) + row + 1);
-        break;
-    case 7: // Left-Up
-        return col - 2 >= 0 && row - 1 >= 0 && WAS_NOT_VISITED(visited, ((col - 2) * BOARD_SIZE) + row - 1);
-        break;
-    default: // not a valid direction
-        printf("%d is not a valid direction.\n", direction);
-        break;
-    }
-}
-
-void move(uint8_t moveNum, uint8_t movesToGo, uint8_t direction, uint8_t row, uint8_t col)
-{
-    uint8_t rotation = 0;
-    MARK_VISITED(visited, row * BOARD_SIZE + col);
-    *(*(board + row) + col) = moveNum++;
-    puts("");
-    printf("move#: %d\n", moveNum);
-    printf("toGo: %d\n", movesToGo);
-    for (int i = 0; i < BOARD_SIZE; i++)
-    {
-        for (int j = 0; j < BOARD_SIZE; j++)
-            printf("%02d ", *(*(board + i) + j));
-        puts("");
-    }
-    if(movesToGo-- == 0)
-        return;
-    while((direction + rotation) < 8 && !canMove(direction + rotation, row, col))
-        rotation++;
-    if((direction + rotation) < 8)
-    {
-        changeRowCol(direction + rotation, &row, &col);
-        move(moveNum, movesToGo, 0, row, col);
+        *(*(board + row) + col) = moveNum;
+        changeRowCol(direction);
+        direction = 0;
+        moveNum++;
     }
     else
     {
-        UNMARK_VISITED(visited, row * BOARD_SIZE + col);
-        changeRowCol((direction + 4) % 8, &row, &col);
-        move(--moveNum, ++movesToGo, direction + rotation, row, col);
+        *(*(board + row) + col) = 0;
+        --moveNum;
+        direction = (undoMove() + 4) % 8 + 1;
     }
-
 }
 
-void changeRowCol(uint8_t direction, uint8_t *row, uint8_t *col)
+void changeRowCol()
 {
     switch (direction)
     {
     case 0: // Up-Left
-        *row -= 2, --*col;
+        row -= 2, --col;
         break;
     case 1: // Up-Right
-        *row -= 2, ++*col;
+        row -= 2, ++col;
         break;
     case 2: // Right-Up
-        *col += 2, --*row;
+        col += 2, --row;
         break;
     case 3: // Right-Down
-        *col += 2, ++*row;
+        col += 2, ++row;
         break;
     case 4: // Down-Right
-        *row += 2, ++*col;
+        row += 2, ++col;
         break;
     case 5: // Down-Left
-        *row += 2, --*col;
+        row += 2, --col;
         break;
     case 6: // Left-Down
-        *col -= 2, ++*row;
+        col -= 2, ++row;
         break;
     case 7: // Left-Up
-        *col -= 2, --*row;
+        col -= 2, --row;
         break;
-    default: // not a valid direction
-        printf("%d is not a valid direction.\n", direction);
+    }
+}
+
+bool canMove()
+{
+
+    switch(direction)
+    {
+    case 0: // Up-Left
+        return row - 2 >= 0 && col - 1 >= 0 && *(*(board + row - 2) + col - 1) == 0;
+        break;
+    case 1: // Up-Right
+        return row - 2 >= 0 && col + 1 < BOARD_SIZE && *(*(board + row - 2) + col + 1) == 0;
+        break;
+    case 2: // Right-Up
+        return col + 2 < BOARD_SIZE && row - 1 >= 0 && *(*(board + row - 1) + col + 2) == 0;
+        break;
+    case 3: // Right-Down
+        return col + 2 < BOARD_SIZE && row + 1 < BOARD_SIZE && *(*(board + row + 1) + col + 2) == 0;
+        break;
+    case 4: // Down-Right
+        return row + 2 < BOARD_SIZE && col + 1 < BOARD_SIZE && *(*(board + row + 2) + col + 1) == 0;
+        break;
+    case 5: // Down-Left
+        return row + 2 < BOARD_SIZE && col - 1 >= 0 && *(*(board + row + 2) + col - 1) == 0;
+        break;
+    case 6: // Left-Down
+        return col - 2 >= 0 && row + 1 < BOARD_SIZE && *(*(board + row + 1) + col - 2) == 0;
+        break;
+    case 7: // Left-Up
+        return col - 2 >= 0 && row - 1 >= 0 && *(*(board + row - 1) + col - 2) == 0;
+        break;
+    }
+}
+
+uint_fast8_t undoMove()
+{
+    // Up-Left
+    if (row - 2 >= 0 && col - 1 >= 0 && *(*(board + row - 2) + col - 1) == moveNum)
+    {
+        row -= 2, --col;
+        return 0;
+    }
+    // Up-Right
+    if (row - 2 >= 0 && col + 1 < BOARD_SIZE && *(*(board + row - 2) + col + 1) == moveNum)
+    {
+        row -= 2, ++col;
+        return 1;
+    }
+    // Right-Up
+    if (col + 2 < BOARD_SIZE && row - 1 >= 0 && *(*(board + row - 1) + col + 2) == moveNum)
+    {
+        col += 2, --row;
+        return 2;
+    }
+    // Right-Down
+    if (col + 2 < BOARD_SIZE && row + 1 < BOARD_SIZE && *(*(board + row + 1) + col + 2) == moveNum)
+    {
+        col += 2, ++row;
+        return 3;
+    }
+    // Down-Right
+    if (row + 2 < BOARD_SIZE && col + 1 < BOARD_SIZE && *(*(board + row + 2) + col + 1) == moveNum)
+    {
+        row += 2, ++col;
+        return 4;
+    }
+    // Down-Left
+    if (row + 2 < BOARD_SIZE && col - 1 >= 0 && *(*(board + row + 2) + col - 1) == moveNum)
+    {
+        row += 2, --col;
+        return 5;
+    }
+    // Left-Down
+    if (col - 2 >= 0 && row + 1 < BOARD_SIZE && *(*(board + row + 1) + col - 2) == moveNum)
+    {
+        col -= 2, ++row;
+        return 6;
+    }
+    // Left-Up
+    if (col - 2 >= 0 && row - 1 >= 0 && *(*(board + row - 1) + col - 2) == moveNum)
+    {
+        col -= 2, --row;
+        return 7;
     }
 }
