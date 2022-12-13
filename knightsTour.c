@@ -6,7 +6,7 @@
 #include <time.h>
 
 // macros
-#define BOARD_SIZE 7
+#define BOARD_SIZE 6
 
 // function prototypes
 void move();
@@ -16,6 +16,7 @@ uint_fast8_t undoMove();
 
 // global variables
 uint_fast8_t board[BOARD_SIZE][BOARD_SIZE] = {0};
+uint_fast8_t *arrayFirst = &board[0][0], *arrayLast = &board[BOARD_SIZE - 1][BOARD_SIZE - 1];
 uint_fast8_t moveNum = 1, row = 0, col = 0, direction = 0;
 uint_fast64_t totalMoves = 1;
 
@@ -23,6 +24,7 @@ int main(void)
 {
     clock_t start, end;
     double solveTime;
+    printf("first = %d\nlast = %d\n", arrayFirst, arrayLast);
 
     for (uint_fast8_t i = 0; i < BOARD_SIZE; i++)
     {
@@ -43,7 +45,7 @@ int main(void)
                     printf("%02d ", *(*(board + k) + l));
                 puts("");
             }
-            printf("total moves: %lld\ntime: %llf\n\n", totalMoves, solveTime);
+            printf("moves: %lld\ntime: %.3llf\n\n", totalMoves, solveTime);
         }
         puts("");
     }
@@ -104,7 +106,6 @@ void changeRowCol()
 
 bool canMove()
 {
-
     switch(direction)
     {
     case 0: // Up-Left
@@ -136,52 +137,56 @@ bool canMove()
 
 uint_fast8_t undoMove()
 {
-    // Up-Left
-    if (row - 2 >= 0 && col - 1 >= 0 && *(*(board + row - 2) + col - 1) == moveNum)
+    if (row - 2 >= 0) // Up
     {
-        row -= 2, --col;
-        return 0;
+        if(col - 1 >= 0 && *(*(board + row - 2) + col - 1) == moveNum) // Left
+        {
+            row -= 2, --col;
+            return 0;
+        }
+        if(col + 1 < BOARD_SIZE && *(*(board + row - 2) + col + 1) == moveNum) // Right
+        {
+            row -= 2, ++col;
+            return 1;
+        }
     }
-    // Up-Right
-    if (row - 2 >= 0 && col + 1 < BOARD_SIZE && *(*(board + row - 2) + col + 1) == moveNum)
+    if (col + 2 < BOARD_SIZE) // Right
     {
-        row -= 2, ++col;
-        return 1;
+        if(row - 1 >= 0 && *(*(board + row - 1) + col + 2) == moveNum) // Up
+        {
+            col += 2, --row;
+            return 2;
+        }
+        if (row + 1 < BOARD_SIZE && *(*(board + row + 1) + col + 2) == moveNum) // Down
+        {
+            col += 2, ++row;
+            return 3;
+        }
     }
-    // Right-Up
-    if (col + 2 < BOARD_SIZE && row - 1 >= 0 && *(*(board + row - 1) + col + 2) == moveNum)
+    if (row + 2 < BOARD_SIZE) // Down
     {
-        col += 2, --row;
-        return 2;
+        if(col + 1 < BOARD_SIZE && *(*(board + row + 2) + col + 1) == moveNum) // Right
+        {
+            row += 2, ++col;
+            return 4;
+        }
+        if(col - 1 >= 0 && *(*(board + row + 2) + col - 1) == moveNum) // Left
+        {
+            row += 2, --col;
+            return 5;
+        }
     }
-    // Right-Down
-    if (col + 2 < BOARD_SIZE && row + 1 < BOARD_SIZE && *(*(board + row + 1) + col + 2) == moveNum)
+    if (col - 2 >= 0) // Left
     {
-        col += 2, ++row;
-        return 3;
-    }
-    // Down-Right
-    if (row + 2 < BOARD_SIZE && col + 1 < BOARD_SIZE && *(*(board + row + 2) + col + 1) == moveNum)
-    {
-        row += 2, ++col;
-        return 4;
-    }
-    // Down-Left
-    if (row + 2 < BOARD_SIZE && col - 1 >= 0 && *(*(board + row + 2) + col - 1) == moveNum)
-    {
-        row += 2, --col;
-        return 5;
-    }
-    // Left-Down
-    if (col - 2 >= 0 && row + 1 < BOARD_SIZE && *(*(board + row + 1) + col - 2) == moveNum)
-    {
-        col -= 2, ++row;
-        return 6;
-    }
-    // Left-Up
-    if (col - 2 >= 0 && row - 1 >= 0 && *(*(board + row - 1) + col - 2) == moveNum)
-    {
-        col -= 2, --row;
-        return 7;
+        if(row + 1 < BOARD_SIZE && *(*(board + row + 1) + col - 2) == moveNum) // Down
+        {
+            col -= 2, ++row;
+            return 6;
+        }
+        if (col - 2 >= 0 && row - 1 >= 0 && *(*(board + row - 1) + col - 2) == moveNum) // Up
+        {
+            col -= 2, --row;
+            return 7;
+        }
     }
 }
