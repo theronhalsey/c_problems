@@ -69,7 +69,7 @@ void move()
     {
         *(*(board + row) + col) = 0;
         --moveNum;
-        direction = (undoMove() + 4) % 8 + 1;
+        direction = undoMove();
     }
 }
 
@@ -142,12 +142,12 @@ uint_fast8_t undoMove()
         if(col - 1 >= 0 && *(*(board + row - 2) + col - 1) == moveNum) // Left
         {
             row -= 2, --col;
-            return 0;
+            return 5;
         }
         if(col + 1 < BOARD_SIZE && *(*(board + row - 2) + col + 1) == moveNum) // Right
         {
             row -= 2, ++col;
-            return 1;
+            return 6;
         }
     }
     if (col + 2 < BOARD_SIZE) // Right
@@ -155,12 +155,12 @@ uint_fast8_t undoMove()
         if(row - 1 >= 0 && *(*(board + row - 1) + col + 2) == moveNum) // Up
         {
             col += 2, --row;
-            return 2;
+            return 7;
         }
         if (row + 1 < BOARD_SIZE && *(*(board + row + 1) + col + 2) == moveNum) // Down
         {
             col += 2, ++row;
-            return 3;
+            return 8;
         }
     }
     if (row + 2 < BOARD_SIZE) // Down
@@ -168,12 +168,12 @@ uint_fast8_t undoMove()
         if(col + 1 < BOARD_SIZE && *(*(board + row + 2) + col + 1) == moveNum) // Right
         {
             row += 2, ++col;
-            return 4;
+            return 1;
         }
         if(col - 1 >= 0 && *(*(board + row + 2) + col - 1) == moveNum) // Left
         {
             row += 2, --col;
-            return 5;
+            return 2;
         }
     }
     if (col - 2 >= 0) // Left
@@ -181,12 +181,12 @@ uint_fast8_t undoMove()
         if(row + 1 < BOARD_SIZE && *(*(board + row + 1) + col - 2) == moveNum) // Down
         {
             col -= 2, ++row;
-            return 6;
+            return 3;
         }
         if (col - 2 >= 0 && row - 1 >= 0 && *(*(board + row - 1) + col - 2) == moveNum) // Up
         {
             col -= 2, --row;
-            return 7;
+            return 4;
         }
     }
 }
