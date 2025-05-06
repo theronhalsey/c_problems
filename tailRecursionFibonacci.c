@@ -1,60 +1,51 @@
 #include <stdio.h>
 #include <time.h>
 #include <windows.h>
+#include <stdint.h>
 
-unsigned long long badFibonacci(unsigned int num);
-unsigned long long tailFibonacci(unsigned int num);
+#define FIB_NUM_TAIL 92
+#define FIB_NUM_STD 46
+
+unsigned long long stdRecursiveFibonacci(unsigned int num);
 unsigned long long tailRecursiveFibonacci(unsigned int num, unsigned long long previous, unsigned long long current);
-
 
 int main(void)
 {
-    clock_t start, end;
-    double tailFibTime, badFibTime;
+    double tailFibTime, stdFibTime;
+    LARGE_INTEGER freq, start, end;
+    QueryPerformanceFrequency(&freq);
 
-    start = clock();
-    for (unsigned int i = 1; i <= 45; i++)
-        printf("Bad Fibonacci %2d = %lld\n", i, badFibonacci(i));
-    end = clock();
-    badFibTime = (double) (end-start) / CLOCKS_PER_SEC;
-    Sleep(2000);
-    puts("");
+    // run fibonacci calculation with tail recursion
+    QueryPerformanceCounter(&start);
+    printf("\nTail Fibonacci(%2d) = %lld\n", FIB_NUM_TAIL, tailRecursiveFibonacci(FIB_NUM_TAIL, 1, 2));
+    QueryPerformanceCounter(&end);
+    tailFibTime = (double)(end.QuadPart - start.QuadPart) / freq.QuadPart * 1000;
 
-    start = clock();
-    for (unsigned int i = 1; i <= 93; i++)
-        printf("Fibonacci %2d = %lld\n", i, tailFibonacci(i));
-    end = clock();
-    tailFibTime = (double) (end-start) / CLOCKS_PER_SEC;
-    puts("");
+    // run fibonacci calculation with standard recursion
+    QueryPerformanceCounter(&start);
+    printf(" Std Fibonacci(%2d) = %lld\n", FIB_NUM_STD, stdRecursiveFibonacci(FIB_NUM_STD));
+    QueryPerformanceCounter(&end);
+    stdFibTime = (double)(end.QuadPart - start.QuadPart) / freq.QuadPart;
 
-    printf("Bad Fibonacci Time: %.4lf seconds\nTail Fibonacci Factorial Time: %.4lf seconds\n", badFibTime, tailFibTime);
-
+    printf("\n    Tail Fibonacci Time: %.4lf MILLIseconds\nStandard Fibonacci Time: %.4lf seconds\n", tailFibTime, stdFibTime);
 }
 
-unsigned long long badFibonacci(unsigned int num)
+unsigned long long stdRecursiveFibonacci(unsigned int num)
 {
-    if(num == 1)
-        return 0;
-    if(num == 2)
+    if (num <= 2)
         return 1;
-    return badFibonacci(num - 1) + badFibonacci(num - 2);
-}
-
-unsigned long long tailFibonacci(unsigned int num)
-{
-    if(num == 1)
-        return 0;
-    if(num == 2)
-        return 1;
-    return tailRecursiveFibonacci(num, 1, 1);
-
+    return stdRecursiveFibonacci(num - 1) + stdRecursiveFibonacci(num - 2);
 }
 
 unsigned long long tailRecursiveFibonacci(unsigned int num, unsigned long long previous, unsigned long long current)
 {
-    if(num <= 3)
+    switch (num)
+    {
+    case 1:
+        return 1;
+    case 3:
         return current;
-    tailRecursiveFibonacci(--num, current, previous + current);
+    default:
+        tailRecursiveFibonacci(--num, current, previous + current);
+    }
 }
-
-
