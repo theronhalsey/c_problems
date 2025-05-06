@@ -3,51 +3,43 @@
 #include <windows.h>
 
 unsigned long long badFactorial(unsigned int num);
-unsigned long long tailFactorial(unsigned int num);
 unsigned long long tailRecursiveFactorial(unsigned int num, unsigned long long accumulator);
 
+#define MAX_FACT 20
 
 int main(void)
 {
-    clock_t start, end;
     double tailFactTime, badFactTime;
+    LARGE_INTEGER freq, start, end;
+    QueryPerformanceFrequency(&freq);
 
-    start = clock();
-    for (unsigned int i = 0; i <= 20; i++)
-        printf("Tail %2d! = %lld\n", i, tailFactorial(i));
-    end = clock();
-    tailFactTime = (double) (end-start) / CLOCKS_PER_SEC;
-    Sleep(2000);
+    QueryPerformanceCounter(&start);
+    for (unsigned int i = 0; i <= MAX_FACT; i++)
+        printf("Tail %2d! = %lld\n", i, tailRecursiveFactorial(i, 1));
+    QueryPerformanceCounter(&end);
+    tailFactTime = (double)(end.QuadPart - start.QuadPart) / freq.QuadPart;
+
     puts("");
 
-    start = clock();
-    for (unsigned int i = 1; i <= 20; i++)
-        printf("Bad %2d = %lld\n", i, badFactorial(i));
-    end = clock();
-    badFactTime = (double) (end-start) / CLOCKS_PER_SEC;
-    Sleep(2000);
-    puts("");
+    QueryPerformanceCounter(&start);
+    for (unsigned int i = 0; i <= MAX_FACT; i++)
+        printf("Bad %2d! = %lld\n", i, badFactorial(i));
+    QueryPerformanceCounter(&end);
+    badFactTime = (double)(end.QuadPart - start.QuadPart) / freq.QuadPart;
 
-     printf("Tail Recursive Factorial Time: %.4lf seconds\nBad Factorial Time: %.4lf seconds\n", tailFactTime, badFactTime);
+    printf("\nTail Recursive Factorial Time: %.4lf seconds\nBad Factorial Time: %.4lf seconds\n", tailFactTime, badFactTime);
 }
 
 unsigned long long badFactorial(unsigned int num)
 {
-    if(num == 0)
+    if (num == 0)
         return 1;
     return num * badFactorial(num - 1);
 }
 
-unsigned long long tailFactorial(unsigned int num)
-{
-    if(num <= 0)
-        return 1;
-    return tailRecursiveFactorial(num, 1);
-}
-
 unsigned long long tailRecursiveFactorial(unsigned int num, unsigned long long accumulator)
 {
-    if(num == 1)
+    if (num <= 1)
         return accumulator;
     tailRecursiveFactorial(--num, accumulator * num);
 }

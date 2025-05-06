@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <windows.h>
-#include <stdint.h>
 
 #define FIB_NUM_TAIL 92
 #define FIB_NUM_STD 46
