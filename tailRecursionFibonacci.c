@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <time.h>
 #include <windows.h>
 
 #define FIB_NUM_TAIL 92

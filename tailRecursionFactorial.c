@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <time.h>
 #include <windows.h>
 
 unsigned long long badFactorial(unsigned int num);
