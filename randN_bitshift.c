@@ -17,8 +17,6 @@ int main()
         uint64_t n;
         _rdrand32_step(&r);
         n = ((r * max) >> 32) + 1;
-        //printf("N: %lu\n", n);
-        //printf("N: %lu\n", ((uint64_t)(r * max) >> 32) + 1);
     }
 
     QueryPerformanceCounter(&end);

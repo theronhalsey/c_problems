@@ -25,6 +25,7 @@ int main(void)
     QueryPerformanceCounter(&end);
     stdFibTime = (double)(end.QuadPart - start.QuadPart) / freq.QuadPart;
 
+    // print result
     printf("\n    Tail Fibonacci Time: %.4lf MILLIseconds\nStandard Fibonacci Time: %.4lf seconds\n", tailFibTime, stdFibTime);
 }
 

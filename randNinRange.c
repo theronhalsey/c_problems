@@ -13,6 +13,5 @@ int main()
         uint32_t r = (rand() << 16) + rand();
         printf("N: %d\n", ((uint64_t)(r * max) >> 31) + 1);
     }
-
     return 0;
 }

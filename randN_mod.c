@@ -13,15 +13,13 @@ int main()
     
     for (int i = 0; i < runs; i++)
     {
-        uint64_t r = 0;
-        uint32_t *r_ptr = (void *)&r;
-        _rdrand32_step(r_ptr);
-        r *= max;
-        r = *(r_ptr + 1) + 1;
+        uint32_t r = 0;
+        _rdrand32_step(&r);
+        r %= max;
     }
 
     QueryPerformanceCounter(&end);
-    printf("Pointer math generated %llu random numbers in %.4lf seconds\n", runs, (double)(end.QuadPart-start.QuadPart) / freq.QuadPart);
+    printf("Modular math generated %llu random numbers in %.4lf seconds\n", runs, (double)(end.QuadPart-start.QuadPart) / freq.QuadPart);
 
     return 0;
 }
